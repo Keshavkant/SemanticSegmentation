@@ -27,3 +27,7 @@ Semantic segmentation (SS) is different from classification task where the end r
  2.) Fully Convolutional Network based semantic segmentation: 
     It learns a mapping from pixel to pixel, without extracting the region proposals. FCN has only pooling and convolutional layers which give them the ability to make predicitions on arbitary-sized inputs. One issue in FCN is that the resolution of the output feature maps is down sampled due to propagating through several alternated convolutional and pooling layer. Hence the preidictions are typically in low resolution, resulting in relatively fuzzy object boundaries.  
 
+     Unlike the convolutional neural networks previously introduced, an FCN transforms the height and width of the intermediate layer feature map back to the size of input image through the transposed convolution layer, so that the predictions have a one-to-one correspondence with input image in spatial dimension (height and width).  
+
+     The fully convolutional network first uses the convolutional neural network to extract image features, then transforms the number of channels into the number of categories through the  1×1  convolution layer, and finally transforms the height and width of the feature map to the size of the input image by using the transposed convolution layer. 
+

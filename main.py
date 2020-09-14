@@ -5,9 +5,9 @@
 # Tune these parameters
 
 num_classes = 2        
-image_shape = (160, 576)   
+image_shape = (160, 576)   # Arbitary Size Image as input, FCN only has Pooling and Convoluton Layer hence it makes prediction on arbitary sized input 
 EPOCHS = 40  
-BATCH_SIZE = 16
+BATCH_SIZE = 16 
 DROPOUT = 0.75
 
 # Specify these directory paths
@@ -22,8 +22,8 @@ vgg_path = './data/vgg'
 #--------------------------
 
 correct_label = tf.placeholder(tf.float32, [None, IMAGE_SHAPE[0], IMAGE_SHAPE[1], NUMBER_OF_CLASSES])
-learning_rate = tf.placeholder(tf.float32)
-keep_prob = tf.placeholder(tf.float32)
+learning_rate = tf.placeholder(tf.float32)    # tf.holder assings data in future, It builds our operation and allows to create our operations
+keep_prob = tf.placeholder(tf.float32)         
 
 #--------------------------
 # FUNCTIONS
@@ -32,13 +32,13 @@ keep_prob = tf.placeholder(tf.float32)
 def load_vgg(sess, vgg_path):
   
   # load the model and weights
-  model = tf.saved_model.loader.load(sess, ['vgg16'], vgg_path)
+  model = tf.saved_model.loader.load(sess, ['vgg16'], vgg_path)  
 
   # Get Tensors to be returned from graph
-  graph = tf.get_default_graph()
+  graph = tf.get_default_graph()  # It determines the units of computation, We first need to define the structure("graph") of compuration, Then start the Tensorflow environment                              
   image_input = graph.get_tensor_by_name('image_input:0')
-  keep_prob = graph.get_tensor_by_name('keep_prob:0')
-  layer3 = graph.get_tensor_by_name('layer3_out:0')
+  keep_prob = graph.get_tensor_by_name('keep_prob:0')   #To - Do 
+  layer3 = graph.get_tensor_by_name('layer3_out:0') 
   layer4 = graph.get_tensor_by_name('layer4_out:0')
   layer7 = graph.get_tensor_by_name('layer7_out:0')
 
@@ -50,25 +50,25 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     layer3, layer4, layer7 = vgg_layer3_out, vgg_layer4_out, vgg_layer7_out
 
     # Apply 1x1 convolution in place of fully connected layer
-    fcn8 = tf.layers.conv2d(layer7, filters=num_classes, kernel_size=1, name="fcn8")
+    fcn8 = tf.layers.conv2d(layer7, filters=num_classes, kernel_size=1, name="fcn8") # The layers creates convolution that is convolved with the layer input to produce a tensor of output. 
 
     # Upsample fcn8 with size depth=(4096?) to match size of layer 4 so that we can add skip connection with 4th layer
     fcn9 = tf.layers.conv2d_transpose(fcn8, filters=layer4.get_shape().as_list()[-1],
-    kernel_size=4, strides=(2, 2), padding='SAME', name="fcn9")
+    kernel_size=4, strides=(2, 2), padding='SAME', name="fcn9") 
 
     # Add a skip connection between current final layer fcn8 and 4th layer
     fcn9_skip_connected = tf.add(fcn9, layer4, name="fcn9_plus_vgg_layer4")
 
-    # Upsample again
+    # Upsample again, fcn9 is usampled twice to match the dimension with layer 3 of VGG-16 
     fcn10 = tf.layers.conv2d_transpose(fcn9_skip_connected, filters=layer3.get_shape().as_list()[-1],
     kernel_size=4, strides=(2, 2), padding='SAME', name="fcn10_conv2d")
 
-    # Add skip connection
+    # Add skip connection 
     fcn10_skip_connected = tf.add(fcn10, layer3, name="fcn10_plus_vgg_layer3")
 
-    # Upsample again
+    # Upsample again, FCN-10 is upsampled four times to match the input image size so we get the actual image back 
     fcn11 = tf.layers.conv2d_transpose(fcn10_skip_connected, filters=num_classes,
-    kernel_size=16, strides=(8, 8), padding='SAME', name="fcn11")
+    kernel_size=16, strides=(8, 8), padding='SAME', name="fcn11") 
 
     return fcn11
 
