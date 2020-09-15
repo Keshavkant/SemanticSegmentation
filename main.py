@@ -1,11 +1,17 @@
-#--------------------------
+import tensorflow as tf 
+import helper 
+
+
+#
+# --------------------------
 # USER-SPECIFIED DATA
 #--------------------------
 
 # Tune these parameters
 
-num_classes = 2        
-image_shape = (160, 576)   # Arbitary Size Image as input, FCN only has Pooling and Convoluton Layer hence it makes prediction on arbitary sized input 
+
+NUMBER_OF_CLASSES = 2        
+IMAGE_SHAPE = (160, 576)   # Arbitary Size Image as input, FCN only has Pooling and Convoluton Layer hence it makes prediction on arbitary sized input 
 EPOCHS = 40  
 BATCH_SIZE = 16 
 DROPOUT = 0.75
@@ -21,8 +27,8 @@ vgg_path = './data/vgg'
 # PLACEHOLDER TENSORS
 #--------------------------
 
-correct_label = tf.placeholder(tf.float32, [None, IMAGE_SHAPE[0], IMAGE_SHAPE[1], NUMBER_OF_CLASSES])
-learning_rate = tf.placeholder(tf.float32)    # tf.holder assings data in future, It builds our operation and allows to create our operations
+correct_label = tf.placeholder(tf.float32, [None, IMAGE_SHAPE[0], IMAGE_SHAPE[1], NUMBER_OF_CLASSES]) #1-dimensional array
+learning_rate = tf.placeholder(tf.float32)    # tf.placeholder assings data in future, It builds our operation and allows to create our operations
 keep_prob = tf.placeholder(tf.float32)         
 
 #--------------------------
@@ -35,9 +41,9 @@ def load_vgg(sess, vgg_path):
   model = tf.saved_model.loader.load(sess, ['vgg16'], vgg_path)  
 
   # Get Tensors to be returned from graph
-  graph = tf.get_default_graph()  # It determines the units of computation, We first need to define the structure("graph") of compuration, Then start the Tensorflow environment                              
+  graph = tf.get_default_graph()  # It determines the units of computation, We first need to define the structure("graph") of compuation, Then start the Tensorflow environment                              
   image_input = graph.get_tensor_by_name('image_input:0')
-  keep_prob = graph.get_tensor_by_name('keep_prob:0')   #To - Do 
+  keep_prob = graph.get_tensor_by_name('keep_prob:0')   # keep_prob to control the droup rate 
   layer3 = graph.get_tensor_by_name('layer3_out:0') 
   layer4 = graph.get_tensor_by_name('layer4_out:0')
   layer7 = graph.get_tensor_by_name('layer7_out:0')
@@ -54,7 +60,7 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
 
     # Upsample fcn8 with size depth=(4096?) to match size of layer 4 so that we can add skip connection with 4th layer
     fcn9 = tf.layers.conv2d_transpose(fcn8, filters=layer4.get_shape().as_list()[-1],
-    kernel_size=4, strides=(2, 2), padding='SAME', name="fcn9") 
+    kernel_size=4, strides=(2, 2), padding='SAME', name="fcn9")  #To-Do 
 
     # Add a skip connection between current final layer fcn8 and 4th layer
     fcn9_skip_connected = tf.add(fcn9, layer4, name="fcn9_plus_vgg_layer4")
@@ -75,13 +81,13 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
 def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
   
   # Reshape 4D tensors to 2D, each row represents a pixel, each column a class
-  logits = tf.reshape(nn_last_layer, (-1, num_classes), name="fcn_logits")
-  correct_label_reshaped = tf.reshape(correct_label, (-1, num_classes))
-
+  logits = tf.reshape(nn_last_layer, (-1, num_classes), name="fcn_logits") # The raw predictions which come out of the last layer of the neural network.
+  correct_label_reshaped = tf.reshape(correct_label, (-1, num_classes))   
+ 
   # Calculate distance from actual labels using cross entropy
-  cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=correct_label_reshaped[:])
+  cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=correct_label_reshaped[:]) # probability error in discrete classification tasks 
   # Take mean for total loss
-  loss_op = tf.reduce_mean(cross_entropy, name="fcn_loss")
+  loss_op = tf.reduce_mean(cross_entropy, name="fcn_loss") 
 
   # The model implements this operation to find the weights/parameters that would yield correct pixel labels
   train_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss_op, name="fcn_train_op")
@@ -92,7 +98,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op,
              cross_entropy_loss, input_image,
              correct_label, keep_prob, learning_rate):
 
-  keep_prob_value = 0.5
+  keep_prob_value = 0.5 #control the dropout rate
   learning_rate_value = 0.001
   for epoch in range(epochs):
       # Create function to get batches
@@ -135,7 +141,7 @@ def run():
     session.run(tf.global_variables_initializer())
     session.run(tf.local_variables_initializer())
 
-    print("Model build successful, starting training")
+    print("Model build successful KK, starting training")
 
     # Train the neural network
     train_nn(session, EPOCHS, BATCH_SIZE, get_batches_fn, 
