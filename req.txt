@@ -1,0 +1,3 @@
+Tensorflow==1.14 
+Scipy==1.0.0 
+pillow 
