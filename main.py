@@ -109,7 +109,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op,
           feed_dict={input_image: X_batch, correct_label: gt_batch,
           keep_prob: keep_prob_value, learning_rate:learning_rate_value})
 
-          total_loss += loss;
+          total_loss += loss
 
       print("EPOCH {} ...".format(epoch + 1))
       print("Loss = {:.3f}".format(total_loss))
